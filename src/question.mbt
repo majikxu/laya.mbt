@@ -7,21 +7,6 @@ pub(all) struct ChoiceOption {
 } derive(Debug, Eq)
 
 ///|
-/// A labelled option with no description.
-pub fn ChoiceOption::bare(label : String) -> ChoiceOption {
-  { label, description: None, }
-}
-
-///|
-/// A labelled option with a description.
-pub fn ChoiceOption::described(
-  label : String,
-  description : String,
-) -> ChoiceOption {
-  { label, description: Some(description), }
-}
-
-///|
 /// A typed question about some state.
 ///
 /// These are the three answer shapes Laya is trained to produce. All of them
@@ -42,42 +27,6 @@ pub(all) enum Question {
     when_true~ : String?
   )
 } derive(Debug, Eq)
-
-///|
-/// A choice over bare labels.
-///
-/// `Score` has no equivalent smart constructor: its fields already are exactly
-/// `id`, `instructions` and `levels`, so `Score(id=.., instructions=.., levels=..)`
-/// is the constructor. `Choice` and `Noul` earn theirs — one converts plain
-/// strings into `ChoiceOption`s, the other fills in the two outcome
-/// descriptions, which an enum variant cannot default on its own.
-pub fn Question::choice(
-  id : String,
-  instructions : String,
-  labels : Array[String],
-) -> Question {
-  Choice(id~, instructions~, options=labels.map(ChoiceOption::bare))
-}
-
-///|
-/// A choice over `(label, description)` pairs.
-pub fn Question::choice_described(
-  id : String,
-  instructions : String,
-  options : Array[(String, String)],
-) -> Question {
-  Choice(
-    id~,
-    instructions~,
-    options=options.map(pair => ChoiceOption::described(pair.0, pair.1)),
-  )
-}
-
-///|
-/// A calibrated true/false probability with the default outcome descriptions.
-pub fn Question::noul(id : String, instructions : String) -> Question {
-  Noul(id~, instructions~, when_false=None, when_true=None)
-}
 
 ///|
 /// The id this question was asked under; the key its `Answer` is returned

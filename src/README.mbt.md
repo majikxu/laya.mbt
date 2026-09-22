@@ -106,13 +106,23 @@ fn triage() -> Unit raise {
     "I was billed twice this month. Please refund the duplicate charge.",
   )
   let prediction = agent.predict(state, [
-    @laya.Question::choice("department", "Who should handle this?", [
-      "billing", "technical", "sales",
-    ]),
+    Choice(
+      id="department",
+      instructions="Who should handle this?",
+      options=["billing", "technical", "sales"].map(label => {
+        label,
+        description: None,
+      }),
+    ),
     Score(id="urgency", instructions="How urgent is this?", levels=[
       "not urgent", "soon", "urgent", "critical",
     ]),
-    @laya.Question::noul("refund", "The customer is asking for a refund."),
+    Noul(
+      id="refund",
+      instructions="The customer is asking for a refund.",
+      when_false=None,
+      when_true=None,
+    ),
   ])
   for answer in prediction.answers {
     match answer.decision {
@@ -131,14 +141,18 @@ For one question at a time, `Agent::answer` skips the `Prediction` wrapper.
 rounding to four decimals as it does, which is handy for diffing the two.
 
 Options can carry descriptions, which the model sees but which are never echoed
-back in the answer:
+back in the answer — set `description` on the `ChoiceOption` directly:
 
 ```mbt nocheck
-@laya.Question::choice_described("action", "What should the billing system do next?", [
-  ("dunning", "send a payment reminder"),
-  ("suspend", "suspend the workspace"),
-  ("wait", "take no action yet"),
-])
+Choice(
+  id="action",
+  instructions="What should the billing system do next?",
+  options=[
+    { label: "dunning", description: Some("send a payment reminder") },
+    { label: "suspend", description: Some("suspend the workspace") },
+    { label: "wait", description: Some("take no action yet") },
+  ],
+)
 ```
 
 `State` wraps text. If yours is structured, serialize it first — Laya's Python
@@ -416,10 +430,13 @@ able to see it:
 ```mbt check
 ///|
 test "options render as the model sees them" {
-  let choice = @laya.Question::choice_described(
-    "route",
-    "Who should handle this?",
-    [("billing", "payments and invoices"), ("technical", "bugs and outages")],
+  let choice : @laya.Question = Choice(
+    id="route",
+    instructions="Who should handle this?",
+    options=[
+      { label: "billing", description: Some("payments and invoices"), },
+      { label: "technical", description: Some("bugs and outages"), },
+    ],
   )
   debug_inspect(
     choice.rendered_options(),
@@ -436,7 +453,12 @@ test "options render as the model sees them" {
       #|["level 0: not urgent", "level 1: critical"]
     ),
   )
-  let noul = @laya.Question::noul("refund", "The customer wants a refund.")
+  let noul : @laya.Question = Noul(
+    id="refund",
+    instructions="The customer wants a refund.",
+    when_false=None,
+    when_true=None,
+  )
   debug_inspect(
     noul.rendered_options(),
     content=(

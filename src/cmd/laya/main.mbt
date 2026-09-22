@@ -18,7 +18,7 @@ fn main {
   let command = @argparse.Command(
     "laya",
     about="Run a Laya typed-decision checkpoint locally",
-    version="0.2.0",
+    version="0.3.0",
     arg_required_else_help=true,
     options=[
       @argparse.OptionArg(
@@ -193,25 +193,29 @@ fn parse_question(id : String, definition : Json) -> @lib.Question raise {
     "choice" =>
       match criteria {
         Some(Array(labels)) => {
-          let options = Array(capacity=labels.length())
+          let options : Array[@lib.ChoiceOption] = Array(
+            capacity=labels.length(),
+          )
           for label in labels {
             guard label is String(label) else {
               raise @error.LayaError(
                 "question \{id}: choice labels must be strings",
               )
             }
-            options.push(@lib.ChoiceOption::bare(label))
+            options.push({ label, description: None, })
           }
           Choice(id~, instructions~, options~)
         }
         Some(Object(described)) => {
-          let options = Array(capacity=described.length())
+          let options : Array[@lib.ChoiceOption] = Array(
+            capacity=described.length(),
+          )
           for label, description in described {
             options.push(
               match description {
-                Null => @lib.ChoiceOption::bare(label)
-                String(text) => @lib.ChoiceOption::described(label, text)
-                other => @lib.ChoiceOption::described(label, other.stringify())
+                Null => { label, description: None, }
+                String(text) => { label, description: Some(text), }
+                other => { label, description: Some(other.stringify()), }
               },
             )
           }

@@ -92,7 +92,11 @@ test "the mask token is stripped out of user text" {
 
   // A state that tries to plant an extra option marker must not change how many
   // markers the prompt has, nor where they sit.
-  let question = @laya.Question::choice("q", "Pick one.", ["a", "b"])
+  let question : @laya.Question = Choice(
+    id="q",
+    instructions="Pick one.",
+    options=["a", "b"].map(label => { label, description: None, }),
+  )
   let clean = agent.prompt(@laya.State("nothing unusual here"), question)
   let hostile = agent.prompt(
     @laya.State("nothing \{mask} unusual \{mask} here"),
@@ -119,7 +123,11 @@ test "a question whose options overflow the budget is trimmed, not dropped" {
   let labels = Array::makei(30, index => {
     "option \{index} " + "verbose ".repeat(12)
   })
-  let question = @laya.Question::choice("q", "Pick one.", labels)
+  let question : @laya.Question = Choice(
+    id="q",
+    instructions="Pick one.",
+    options=labels.map(label => { label, description: None, }),
+  )
   let prompt = agent.prompt(@laya.State("some state"), question)
   inspect(prompt.markers().length(), content="30")
   inspect(prompt.length() <= config.max_len, content="true")

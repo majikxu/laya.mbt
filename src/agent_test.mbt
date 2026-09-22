@@ -61,24 +61,27 @@ fn question_from_json(
       match criteria {
         // A list of labels with no descriptions.
         Some(Array(labels)) => {
-          let options = Array(capacity=labels.length())
+          let options : Array[@laya.ChoiceOption] = Array(
+            capacity=labels.length(),
+          )
           for label in labels {
             guard label is String(label) else {
               raise @error.LayaError("choice labels must be strings")
             }
-            options.push(@laya.ChoiceOption::bare(label))
+            options.push({ label, description: None, })
           }
           Choice(id~, instructions~, options~)
         }
         // A mapping of label to description; insertion order is the marker
         // order, which is why the fixture's JSON object order matters.
         Some(Object(described)) => {
-          let options = Array(capacity=described.length())
+          let options : Array[@laya.ChoiceOption] = Array(
+            capacity=described.length(),
+          )
           for label, description in described {
             match description {
-              String(text) =>
-                options.push(@laya.ChoiceOption::described(label, text))
-              Null => options.push(@laya.ChoiceOption::bare(label))
+              String(text) => options.push({ label, description: Some(text), })
+              Null => options.push({ label, description: None, })
               other =>
                 raise @error.LayaError(
                   "choice description for \{label} is \{other.stringify()}, which this test does not render",
@@ -319,14 +322,24 @@ test "the Metal and CPU backends agree to float32 precision" {
   let state = @laya.State(
     "I was billed twice this month. Please refund the duplicate charge.",
   )
-  let questions = [
-    @laya.Question::choice("department", "Who should handle this?", [
-      "billing", "technical", "sales",
-    ]),
+  let questions : Array[@laya.Question] = [
+    Choice(
+      id="department",
+      instructions="Who should handle this?",
+      options=["billing", "technical", "sales"].map(label => {
+        label,
+        description: None,
+      }),
+    ),
     Score(id="urgency", instructions="How urgent is this?", levels=[
       "not urgent", "soon", "urgent", "critical",
     ]),
-    @laya.Question::noul("refund", "The customer is asking for a refund."),
+    Noul(
+      id="refund",
+      instructions="The customer is asking for a refund.",
+      when_false=None,
+      when_true=None,
+    ),
   ]
   let on_gpu = gpu.predict(state, questions)
   let on_cpu = cpu.predict(state, questions)

@@ -42,8 +42,6 @@ pub(all) struct ChoiceOption {
   label : String
   description : String?
 } derive(Eq, @debug.Debug)
-pub fn ChoiceOption::bare(String) -> Self
-pub fn ChoiceOption::described(String, String) -> Self
 
 pub(all) enum Decision {
   Choice(label~ : String, probabilities~ : Array[(String, Double)])
@@ -69,12 +67,9 @@ pub(all) enum Question {
   Score(id~ : String, instructions~ : String, levels~ : Array[String])
   Noul(id~ : String, instructions~ : String, when_false~ : String?, when_true~ : String?)
 } derive(Eq, @debug.Debug)
-pub fn Question::choice(String, String, Array[String]) -> Self
-pub fn Question::choice_described(String, String, Array[(String, String)]) -> Self
 pub fn Question::id(Self) -> String
 pub fn Question::instructions(Self) -> String
 pub fn Question::labels(Self) -> Array[String]
-pub fn Question::noul(String, String) -> Self
 pub fn Question::rendered_options(Self) -> Array[String]
 pub fn Question::type_index(Self) -> Int
 pub fn Question::type_name(Self) -> String
