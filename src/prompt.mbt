@@ -48,7 +48,7 @@ const OPTION_TOKEN_LIMIT : Int = 48
 /// state or instruction cannot inject an extra option marker.
 pub fn build_prompt(
   vocabulary : Vocabulary,
-  state : String,
+  state : State,
   question : Question,
   max_len~ : Int,
   head_max_len~ : Int,
@@ -102,7 +102,7 @@ pub fn build_prompt(
   }
   ids.push(vocabulary.sep_id())
   let room = @cmp.maximum(0, max_len - ids.length() - 1)
-  for id in truncate(vocabulary.encode(scrub(state, mask)), room) {
+  for id in truncate(vocabulary.encode(scrub(state.text(), mask)), room) {
     ids.push(id)
   }
   ids.push(vocabulary.sep_id())

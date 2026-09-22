@@ -17,6 +17,8 @@ pub(all) enum Decision {
 ///|
 /// One decision with its calibration.
 pub(all) struct Answer {
+  /// The id of the question this answers.
+  id : String
   decision : Decision
   /// `1 - H(p) / log(k)` over the calibrated distribution: 1.0 when the model
   /// is certain, 0.0 when it is uniform. For `Noul`, the distance of the
@@ -29,7 +31,7 @@ pub(all) struct Answer {
 ///|
 /// Every answer for one `predict` call, in the order the questions were asked.
 pub(all) struct Prediction {
-  answers : Array[(String, Answer)]
+  answers : Array[Answer]
   /// Total prompt tokens across all questions, which is what a Laya call costs.
   input_tokens : Int
 } derive(Debug)
@@ -37,9 +39,9 @@ pub(all) struct Prediction {
 ///|
 /// Look up an answer by question id.
 pub fn Prediction::get(self : Prediction, id : String) -> Answer? {
-  for entry in self.answers {
-    if entry.0 == id {
-      return Some(entry.1)
+  for answer in self.answers {
+    if answer.id == id {
+      return Some(answer)
     }
   }
   None
@@ -57,6 +59,7 @@ fn decode(
   outputs : @model.Outputs,
   config : @model.AgentConfig,
 ) -> Answer {
+  let id = question.id()
   let options = outputs.options
   let temperature = calibration(config, question.type_name(), options)
   let scaled = Array::make(options, 0.0)
@@ -79,6 +82,7 @@ fn decode(
         paired.push((labels[index], probabilities[index]))
       }
       {
+        id,
         decision: Choice(label=labels[best], probabilities=paired),
         confidence: confidence_from(probabilities),
         act_probability,
@@ -90,6 +94,7 @@ fn decode(
         value += index.to_double() * probability
       }
       {
+        id,
         decision: Score(value~, probabilities~, legend=levels),
         confidence: confidence_from(probabilities),
         act_probability,
@@ -99,6 +104,7 @@ fn decode(
       // A noul question always has exactly two options, so index 1 is `true`.
       let probability = probabilities[options - 1]
       {
+        id,
         decision: Noul(probability~),
         confidence: @cmp.maximum(probability, 1.0 - probability),
         act_probability,
@@ -162,8 +168,8 @@ fn confidence_from(probabilities : Array[Double]) -> Double {
 /// diffed directly against it. The in-memory `Answer` keeps full precision.
 pub fn Prediction::to_json(self : Prediction) -> Json {
   let answers = Map([])
-  for entry in self.answers {
-    answers[entry.0] = entry.1.to_json()
+  for answer in self.answers {
+    answers[answer.id] = answer.to_json()
   }
   {
     "model": "laya-rl-agent",

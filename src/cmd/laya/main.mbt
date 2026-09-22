@@ -18,7 +18,7 @@ fn main {
   let command = @argparse.Command(
     "laya",
     about="Run a Laya typed-decision checkpoint locally",
-    version="0.1.0",
+    version="0.2.0",
     arg_required_else_help=true,
     options=[
       @argparse.OptionArg(
@@ -111,6 +111,7 @@ fn run(matches : @argparse.Matches) -> Unit raise {
   let load_started = @env.now()
   let agent = @lib.Agent::load(model_dir, backend~)
   let loaded_in = @env.now() - load_started
+  let state = @lib.State(state)
   let mut prediction = agent.predict(state, questions)
   let predict_started = @env.now()
   for _ in 0..<repeat {
@@ -157,7 +158,7 @@ fn read_input(path : String) -> String raise {
 
 ///|
 /// Parse the Python runtime's questions JSON into ordered questions.
-fn parse_questions(source : String) -> Array[(String, @lib.Question)] raise {
+fn parse_questions(source : String) -> Array[@lib.Question] raise {
   let json = @json.parse(source) catch {
     _ => raise @error.LayaError("the questions file is not valid JSON")
   }
@@ -168,7 +169,7 @@ fn parse_questions(source : String) -> Array[(String, @lib.Question)] raise {
   }
   let out = Array(capacity=entries.length())
   for id, definition in entries {
-    out.push((id, parse_question(id, definition)))
+    out.push(parse_question(id, definition))
   }
   out
 }
@@ -201,7 +202,7 @@ fn parse_question(id : String, definition : Json) -> @lib.Question raise {
             }
             options.push(@lib.ChoiceOption::bare(label))
           }
-          Choice(instructions~, options~)
+          Choice(id~, instructions~, options~)
         }
         Some(Object(described)) => {
           let options = Array(capacity=described.length())
@@ -214,7 +215,7 @@ fn parse_question(id : String, definition : Json) -> @lib.Question raise {
               },
             )
           }
-          Choice(instructions~, options~)
+          Choice(id~, instructions~, options~)
         }
         _ =>
           raise @error.LayaError(
@@ -233,7 +234,7 @@ fn parse_question(id : String, definition : Json) -> @lib.Question raise {
               },
             )
           }
-          Score(instructions~, levels~)
+          Score(id~, instructions~, levels~)
         }
         _ =>
           raise @error.LayaError(
@@ -253,6 +254,7 @@ fn parse_question(id : String, definition : Json) -> @lib.Question raise {
         }
       }
       Noul(
+        id~,
         instructions~,
         when_false=outcome("false"),
         when_true=outcome("true"),

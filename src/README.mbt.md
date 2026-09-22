@@ -102,28 +102,25 @@ fn triage() -> Unit raise {
   // `backend` defaults to Metal, falling back to the CPU when there is no GPU.
   // Pass `backend=Cpu` to force it; `agent.device()` reports what you got.
   let agent = @laya.Agent::load("models/laya-multilingual-mlx")
-  let state = "I was billed twice this month. Please refund the duplicate charge."
+  let state = @laya.State(
+    "I was billed twice this month. Please refund the duplicate charge.",
+  )
   let prediction = agent.predict(state, [
-    (
-      "department",
-      @laya.Question::choice("Who should handle this?", [
-        "billing", "technical", "sales",
-      ]),
-    ),
-    (
-      "urgency",
-      @laya.Question::score("How urgent is this?", [
-        "not urgent", "soon", "urgent", "critical",
-      ]),
-    ),
-    ("refund", @laya.Question::noul("The customer is asking for a refund.")),
+    @laya.Question::choice("department", "Who should handle this?", [
+      "billing", "technical", "sales",
+    ]),
+    Score(id="urgency", instructions="How urgent is this?", levels=[
+      "not urgent", "soon", "urgent", "critical",
+    ]),
+    @laya.Question::noul("refund", "The customer is asking for a refund."),
   ])
-  for entry in prediction.answers {
-    let (id, answer) = entry
+  for answer in prediction.answers {
     match answer.decision {
-      Choice(label~, ..) => println("\{id}: \{label} (\{answer.confidence})")
-      Score(value~, ..) => println("\{id}: \{value} (\{answer.confidence})")
-      Noul(probability~) => println("\{id}: \{probability}")
+      Choice(label~, ..) =>
+        println("\{answer.id}: \{label} (\{answer.confidence})")
+      Score(value~, ..) =>
+        println("\{answer.id}: \{value} (\{answer.confidence})")
+      Noul(probability~) => println("\{answer.id}: \{probability}")
     }
   }
 }
@@ -137,14 +134,14 @@ Options can carry descriptions, which the model sees but which are never echoed
 back in the answer:
 
 ```mbt nocheck
-@laya.Question::choice_described("What should the billing system do next?", [
+@laya.Question::choice_described("action", "What should the billing system do next?", [
   ("dunning", "send a payment reminder"),
   ("suspend", "suspend the workspace"),
   ("wait", "take no action yet"),
 ])
 ```
 
-State is text. If yours is structured, serialize it first — Laya's Python
+`State` wraps text. If yours is structured, serialize it first — Laya's Python
 runtime uses `json.dumps(state, ensure_ascii=False)`, so matching that gives
 matching tokens.
 
@@ -419,24 +416,27 @@ able to see it:
 ```mbt check
 ///|
 test "options render as the model sees them" {
-  let choice = @laya.Question::choice_described("Who should handle this?", [
-    ("billing", "payments and invoices"),
-    ("technical", "bugs and outages"),
-  ])
+  let choice = @laya.Question::choice_described(
+    "route",
+    "Who should handle this?",
+    [("billing", "payments and invoices"), ("technical", "bugs and outages")],
+  )
   debug_inspect(
     choice.rendered_options(),
     content=(
       #|["billing: payments and invoices", "technical: bugs and outages"]
     ),
   )
-  let score = @laya.Question::score("How urgent?", ["not urgent", "critical"])
+  let score : @laya.Question = Score(id="urgency", instructions="How urgent?", levels=[
+    "not urgent", "critical",
+  ])
   debug_inspect(
     score.rendered_options(),
     content=(
       #|["level 0: not urgent", "level 1: critical"]
     ),
   )
-  let noul = @laya.Question::noul("The customer wants a refund.")
+  let noul = @laya.Question::noul("refund", "The customer wants a refund.")
   debug_inspect(
     noul.rendered_options(),
     content=(

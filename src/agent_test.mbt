@@ -43,6 +43,7 @@ fn read_json(path : String) -> Json? {
 /// Rebuild a `Question` from the fixture's Laya-format question definition, so
 /// the test exercises the same definitions the reference ran.
 fn question_from_json(
+  id : String,
   definition : Json,
 ) -> @laya.Question raise @error.LayaError {
   guard definition
@@ -67,7 +68,7 @@ fn question_from_json(
             }
             options.push(@laya.ChoiceOption::bare(label))
           }
-          Choice(instructions~, options~)
+          Choice(id~, instructions~, options~)
         }
         // A mapping of label to description; insertion order is the marker
         // order, which is why the fixture's JSON object order matters.
@@ -84,7 +85,7 @@ fn question_from_json(
                 )
             }
           }
-          Choice(instructions~, options~)
+          Choice(id~, instructions~, options~)
         }
         _ => raise @error.LayaError("choice question has no usable criteria")
       }
@@ -98,7 +99,7 @@ fn question_from_json(
             }
             levels.push(level)
           }
-          Score(instructions~, levels~)
+          Score(id~, instructions~, levels~)
         }
         _ => raise @error.LayaError("score question has no usable criteria")
       }
@@ -114,6 +115,7 @@ fn question_from_json(
         }
       }
       Noul(
+        id~,
         instructions~,
         when_false=outcome("false"),
         when_true=outcome("true"),
@@ -124,14 +126,14 @@ fn question_from_json(
 }
 
 ///|
-/// Ordered `(id, question)` pairs from the fixture's questions object.
+/// Questions from the fixture's questions object, each carrying its own id.
 fn questions_from_json(
   json : Json?,
-) -> Array[(String, @laya.Question)] raise @error.LayaError {
+) -> Array[@laya.Question] raise @error.LayaError {
   guard json is Some(Object(fields)) else { return [] }
   let out = Array(capacity=fields.length())
   for id, definition in fields {
-    out.push((id, question_from_json(definition)))
+    out.push(question_from_json(id, definition))
   }
   out
 }
@@ -170,22 +172,23 @@ test "prompts tokenize exactly as the Python runtime does" {
         report.push("\{checkpoint.name}/\{name}: question count mismatch")
         continue
       }
-      for index, entry in questions {
+      for index, question in questions {
         guard items[index] is Object(item) else { continue }
-        let prompt = agent.prompt(state, entry.1)
+        let prompt = agent.prompt(@laya.State(state), question)
         let want_ids = ints(item.get("ids"))
         let want_markers = ints(item.get("markers"))
+        let id = question.id()
         if prompt.ids() != want_ids {
           report.push(
-            "\{checkpoint.name}/\{name}/\{entry.0}: ids differ (\{prompt.ids().length()} vs \{want_ids.length()} tokens)",
+            "\{checkpoint.name}/\{name}/\{id}: ids differ (\{prompt.ids().length()} vs \{want_ids.length()} tokens)",
           )
         }
         if prompt.markers() != want_markers {
           report.push(
-            "\{checkpoint.name}/\{name}/\{entry.0}: markers \{Repr(prompt.markers())} vs \{Repr(want_markers)}",
+            "\{checkpoint.name}/\{name}/\{id}: markers \{Repr(prompt.markers())} vs \{Repr(want_markers)}",
           )
         }
-        checked.push("\{checkpoint.name}/\{name}/\{entry.0}")
+        checked.push("\{checkpoint.name}/\{name}/\{id}")
       }
     }
   }
@@ -219,7 +222,7 @@ test "predictions render identically to the Python runtime" {
       }
       guard case.get("result") is Some(expected) else { continue }
       let questions = questions_from_json(case.get("questions"))
-      let prediction = agent.predict(state, questions)
+      let prediction = agent.predict(@laya.State(state), questions)
       let produced = prediction.to_json()
       if produced != expected {
         report.push(
@@ -279,7 +282,7 @@ test "Metal predictions render identically to the Python runtime" {
       }
       guard case.get("result") is Some(expected) else { continue }
       let questions = questions_from_json(case.get("questions"))
-      let produced = agent.predict(state, questions).to_json()
+      let produced = agent.predict(@laya.State(state), questions).to_json()
       if produced != expected {
         report.push(
           "\{checkpoint.name}/\{name} on \{agent.device()}:\n  got  \{produced.stringify()}\n  want \{expected.stringify()}",
@@ -313,28 +316,24 @@ test "the Metal and CPU backends agree to float32 precision" {
     return
   }
   let cpu = @laya.Agent::load(directory, backend=Cpu)
-  let state = "I was billed twice this month. Please refund the duplicate charge."
+  let state = @laya.State(
+    "I was billed twice this month. Please refund the duplicate charge.",
+  )
   let questions = [
-    (
-      "department",
-      @laya.Question::choice("Who should handle this?", [
-        "billing", "technical", "sales",
-      ]),
-    ),
-    (
-      "urgency",
-      @laya.Question::score("How urgent is this?", [
-        "not urgent", "soon", "urgent", "critical",
-      ]),
-    ),
-    ("refund", @laya.Question::noul("The customer is asking for a refund.")),
+    @laya.Question::choice("department", "Who should handle this?", [
+      "billing", "technical", "sales",
+    ]),
+    Score(id="urgency", instructions="How urgent is this?", levels=[
+      "not urgent", "soon", "urgent", "critical",
+    ]),
+    @laya.Question::noul("refund", "The customer is asking for a refund."),
   ]
   let on_gpu = gpu.predict(state, questions)
   let on_cpu = cpu.predict(state, questions)
   let report = []
-  for index, entry in on_gpu.answers {
-    let (id, gpu_answer) = entry
-    let cpu_answer = on_cpu.answers[index].1
+  for index, gpu_answer in on_gpu.answers {
+    let cpu_answer = on_cpu.answers[index]
+    let id = gpu_answer.id
     let confidence = (gpu_answer.confidence - cpu_answer.confidence).abs()
     if confidence > 1.0e-5 {
       report.push("\{id}: confidence differs by \{confidence}")

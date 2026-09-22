@@ -1,6 +1,6 @@
 name = "majikxu/laya"
 
-version = "0.1.0"
+version = "0.2.0"
 
 description = "Laya typed-decision inference engine for MoonBit — native ModernBERT/mmBERT encoder, no Python runtime"
 

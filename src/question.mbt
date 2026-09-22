@@ -29,49 +29,63 @@ pub fn ChoiceOption::described(
 /// option and the distribution over those markers is the answer.
 pub(all) enum Question {
   /// Pick one label. Returns the top label and a probability per label.
-  Choice(instructions~ : String, options~ : Array[ChoiceOption])
+  Choice(id~ : String, instructions~ : String, options~ : Array[ChoiceOption])
   /// Place the state on an ordinal scale, where `levels[i]` describes level
   /// `i`. Returns the probability-weighted level.
-  Score(instructions~ : String, levels~ : Array[String])
+  Score(id~ : String, instructions~ : String, levels~ : Array[String])
   /// A calibrated probability that a statement holds. `when_false` and
   /// `when_true` override the default descriptions of the two outcomes.
-  Noul(instructions~ : String, when_false~ : String?, when_true~ : String?)
+  Noul(
+    id~ : String,
+    instructions~ : String,
+    when_false~ : String?,
+    when_true~ : String?
+  )
 } derive(Debug, Eq)
 
 ///|
 /// A choice over bare labels.
+///
+/// `Score` has no equivalent smart constructor: its fields already are exactly
+/// `id`, `instructions` and `levels`, so `Score(id=.., instructions=.., levels=..)`
+/// is the constructor. `Choice` and `Noul` earn theirs — one converts plain
+/// strings into `ChoiceOption`s, the other fills in the two outcome
+/// descriptions, which an enum variant cannot default on its own.
 pub fn Question::choice(
+  id : String,
   instructions : String,
   labels : Array[String],
 ) -> Question {
-  Choice(instructions~, options=labels.map(ChoiceOption::bare))
+  Choice(id~, instructions~, options=labels.map(ChoiceOption::bare))
 }
 
 ///|
 /// A choice over `(label, description)` pairs.
 pub fn Question::choice_described(
+  id : String,
   instructions : String,
   options : Array[(String, String)],
 ) -> Question {
   Choice(
+    id~,
     instructions~,
     options=options.map(pair => ChoiceOption::described(pair.0, pair.1)),
   )
 }
 
 ///|
-/// An ordinal score over the given level descriptions.
-pub fn Question::score(
-  instructions : String,
-  levels : Array[String],
-) -> Question {
-  Score(instructions~, levels~)
+/// A calibrated true/false probability with the default outcome descriptions.
+pub fn Question::noul(id : String, instructions : String) -> Question {
+  Noul(id~, instructions~, when_false=None, when_true=None)
 }
 
 ///|
-/// A calibrated true/false probability with the default outcome descriptions.
-pub fn Question::noul(instructions : String) -> Question {
-  Noul(instructions~, when_false=None, when_true=None)
+/// The id this question was asked under; the key its `Answer` is returned
+/// under.
+pub fn Question::id(self : Question) -> String {
+  match self {
+    Choice(id~, ..) | Score(id~, ..) | Noul(id~, ..) => id
+  }
 }
 
 ///|

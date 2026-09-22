@@ -118,7 +118,7 @@ fn read_config(path : String) -> String raise @error.LayaError {
 /// Answer one question about one state.
 pub fn Agent::answer(
   self : Agent,
-  state : String,
+  state : State,
   question : Question,
 ) -> Answer raise @error.LayaError {
   let config = self.model.agent_config()
@@ -142,17 +142,17 @@ pub fn Agent::answer(
 ///
 /// Each question is a separate forward pass over its own prompt — the questions
 /// share the state text but not the sequence, because every question carries its
-/// own option markers.
+/// own option markers. Each `Question` carries the id its `Answer` comes back
+/// under; see `Prediction::get`.
 pub fn Agent::predict(
   self : Agent,
-  state : String,
-  questions : Array[(String, Question)],
+  state : State,
+  questions : Array[Question],
 ) -> Prediction raise @error.LayaError {
   let config = self.model.agent_config()
   let answers = Array(capacity=questions.length())
   let mut input_tokens = 0
-  for entry in questions {
-    let (id, question) = entry
+  for question in questions {
     let prompt = build_prompt(
       self.vocabulary,
       state,
@@ -166,7 +166,7 @@ pub fn Agent::predict(
       prompt.markers,
       prompt.type_index,
     )
-    answers.push((id, decode(question, outputs, config)))
+    answers.push(decode(question, outputs, config))
   }
   { answers, input_tokens, }
 }
@@ -178,7 +178,7 @@ pub fn Agent::predict(
 /// runtime's tokenization.
 pub fn Agent::prompt(
   self : Agent,
-  state : String,
+  state : State,
   question : Question,
 ) -> Prompt raise @error.LayaError {
   let config = self.model.agent_config()

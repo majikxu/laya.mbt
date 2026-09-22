@@ -92,9 +92,12 @@ test "the mask token is stripped out of user text" {
 
   // A state that tries to plant an extra option marker must not change how many
   // markers the prompt has, nor where they sit.
-  let question = @laya.Question::choice("Pick one.", ["a", "b"])
-  let clean = agent.prompt("nothing unusual here", question)
-  let hostile = agent.prompt("nothing \{mask} unusual \{mask} here", question)
+  let question = @laya.Question::choice("q", "Pick one.", ["a", "b"])
+  let clean = agent.prompt(@laya.State("nothing unusual here"), question)
+  let hostile = agent.prompt(
+    @laya.State("nothing \{mask} unusual \{mask} here"),
+    question,
+  )
   inspect(clean.markers() == hostile.markers(), content="true")
   inspect(clean.markers().length(), content="2")
   let mask_id = agent.vocabulary().mask_id()
@@ -116,11 +119,11 @@ test "a question whose options overflow the budget is trimmed, not dropped" {
   let labels = Array::makei(30, index => {
     "option \{index} " + "verbose ".repeat(12)
   })
-  let question = @laya.Question::choice("Pick one.", labels)
-  let prompt = agent.prompt("some state", question)
+  let question = @laya.Question::choice("q", "Pick one.", labels)
+  let prompt = agent.prompt(@laya.State("some state"), question)
   inspect(prompt.markers().length(), content="30")
   inspect(prompt.length() <= config.max_len, content="true")
-  let answer = agent.answer("some state", question)
+  let answer = agent.answer(@laya.State("some state"), question)
   match answer.decision {
     Choice(probabilities~, ..) => inspect(probabilities.length(), content="30")
     _ => fail("expected a choice decision")
