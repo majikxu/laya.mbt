@@ -1,0 +1,95 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "majikxu/laya"
+
+import {
+  "majikxu/laya/error",
+  "majikxu/laya/model",
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn build_prompt(Vocabulary, String, Question, max_len~ : Int, head_max_len~ : Int) -> Prompt raise @error.LayaError
+
+// Errors
+
+// Types and methods
+type Agent
+pub fn Agent::agent_config(Self) -> @model.AgentConfig
+pub fn Agent::answer(Self, String, Question) -> Answer raise @error.LayaError
+pub fn Agent::device(Self) -> String
+pub fn Agent::encoder_config(Self) -> @model.EncoderConfig
+pub fn Agent::load(String, backend? : Backend) -> Self raise @error.LayaError
+pub fn Agent::on_metal(Self) -> Bool
+pub fn Agent::predict(Self, String, Array[(String, Question)]) -> Prediction raise @error.LayaError
+pub fn Agent::prompt(Self, String, Question) -> Prompt raise @error.LayaError
+pub fn Agent::vocabulary(Self) -> Vocabulary
+
+pub(all) struct Answer {
+  decision : Decision
+  confidence : Double
+  act_probability : Double
+} derive(@debug.Debug)
+pub fn Answer::to_json(Self) -> Json
+
+pub(all) enum Backend {
+  Cpu
+  Metal
+  MetalRequired
+} derive(Eq, @debug.Debug)
+
+pub(all) struct ChoiceOption {
+  label : String
+  description : String?
+} derive(Eq, @debug.Debug)
+pub fn ChoiceOption::bare(String) -> Self
+pub fn ChoiceOption::described(String, String) -> Self
+
+pub(all) enum Decision {
+  Choice(label~ : String, probabilities~ : Array[(String, Double)])
+  Score(value~ : Double, probabilities~ : Array[Double], legend~ : Array[String])
+  Noul(probability~ : Double)
+} derive(@debug.Debug)
+
+pub(all) struct Prediction {
+  answers : Array[(String, Answer)]
+  input_tokens : Int
+} derive(@debug.Debug)
+pub fn Prediction::get(Self, String) -> Answer?
+pub fn Prediction::to_json(Self) -> Json
+
+type Prompt derive(Eq, @debug.Debug)
+pub fn Prompt::ids(Self) -> Array[Int]
+pub fn Prompt::length(Self) -> Int
+pub fn Prompt::markers(Self) -> Array[Int]
+pub fn Prompt::type_index(Self) -> Int
+
+pub(all) enum Question {
+  Choice(instructions~ : String, options~ : Array[ChoiceOption])
+  Score(instructions~ : String, levels~ : Array[String])
+  Noul(instructions~ : String, when_false~ : String?, when_true~ : String?)
+} derive(Eq, @debug.Debug)
+pub fn Question::choice(String, Array[String]) -> Self
+pub fn Question::choice_described(String, Array[(String, String)]) -> Self
+pub fn Question::instructions(Self) -> String
+pub fn Question::labels(Self) -> Array[String]
+pub fn Question::noul(String) -> Self
+pub fn Question::rendered_options(Self) -> Array[String]
+pub fn Question::score(String, Array[String]) -> Self
+pub fn Question::type_index(Self) -> Int
+pub fn Question::type_name(Self) -> String
+pub fn Question::validate(Self) -> Unit raise @error.LayaError
+
+type Vocabulary
+pub fn Vocabulary::cls_id(Self) -> Int
+pub fn Vocabulary::encode(Self, String) -> Array[Int] raise @error.LayaError
+pub fn Vocabulary::load(String) -> Self raise @error.LayaError
+pub fn Vocabulary::mask_id(Self) -> Int
+pub fn Vocabulary::mask_token(Self) -> String
+pub fn Vocabulary::pad_id(Self) -> Int
+pub fn Vocabulary::sep_id(Self) -> Int
+pub fn Vocabulary::size(Self) -> Int
+
+// Type aliases
+pub using @error {type LayaError}
+
+// Traits

@@ -1,0 +1,14 @@
+supported_targets = "native"
+
+import {
+  "moonbitlang/core/math",
+  "majikxu/laya/error",
+  "moonbitlang/core/encoding/utf8",
+}
+
+options(
+  // Linker flags reach dependents through `link_configs` in build.js rather
+  // than a `link` block here: setting `link` on a library package makes moon
+  // try to produce an executable from it.
+  "native-stub": [ "laya_native.c", "laya_metal.m" ],
+)

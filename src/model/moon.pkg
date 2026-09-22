@@ -1,0 +1,15 @@
+supported_targets = "native"
+
+import {
+  "moonbitlang/core/cmp",
+  "moonbitlang/core/math",
+  "moonbitlang/core/json",
+  "majikxu/laya/error",
+  "majikxu/laya/safetensors",
+  "majikxu/laya/tensor",
+}
+
+import {
+  "moonbitlang/core/double",
+  "moonbitlang/x/fs",
+} for "test"

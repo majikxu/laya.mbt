@@ -1,0 +1,8 @@
+supported_targets = "native"
+
+import {
+  "majikxu/laya/error",
+  "majikxu/laya/tensor",
+  "moonbitlang/core/json",
+  "moonbitlang/core/encoding/utf8",
+}

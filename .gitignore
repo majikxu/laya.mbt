@@ -1,0 +1,14 @@
+_build/
+target/
+.repos/
+.mooncakes/
+
+# Model weights are not redistributed; see the README for how to fetch them.
+models/
+
+# Reference fixtures are generated from the checkpoints by ref/dump_*.py.
+fixtures/*.json
+
+ref/.venv/
+__pycache__/
+src/tensor/laya_kernels.generated.h

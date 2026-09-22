@@ -1,0 +1,13 @@
+supported_targets = "native"
+
+import {
+  "majikxu/laya/error",
+  "majikxu/laya/model",
+  "majikxu/laya/tensor",
+  "howtomakeaname/tokenizers-moonbit/tokenizer",
+  "moonbit-community/normalization",
+  "moonbitlang/core/cmp",
+  "moonbitlang/core/json",
+  "moonbitlang/core/math",
+  "moonbitlang/x/fs",
+}

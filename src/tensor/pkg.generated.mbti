@@ -1,0 +1,79 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "majikxu/laya/tensor"
+
+import {
+  "majikxu/laya/error",
+}
+
+// Values
+pub fn add_inplace(FixedArray[Float], FixedArray[Float], len~ : Int) -> Unit
+
+pub fn geglu(FixedArray[Float], FixedArray[Float], rows~ : Int, inner~ : Int) -> Unit
+
+pub fn gelu(Float) -> Float
+
+pub fn gelu_inplace(FixedArray[Float], len~ : Int) -> Unit
+
+pub fn gemm(FixedArray[Float], FixedArray[Float], FixedArray[Float], m~ : Int, n~ : Int, k~ : Int, a_offset? : Int, b_offset? : Int, c_offset? : Int, lda~ : Int, ldb~ : Int, ldc~ : Int, trans_b? : Bool, alpha? : Float, beta? : Float) -> Unit
+
+pub fn layer_norm(FixedArray[Float], FixedArray[Float], rows~ : Int, cols~ : Int, FixedArray[Float], FixedArray[Float]?, eps~ : Float) -> Unit
+
+pub fn linear(FixedArray[Float], Arena, Int64, Int64, FixedArray[Float], m~ : Int, k~ : Int, n~ : Int) -> Unit
+
+pub fn relu_inplace(FixedArray[Float], len~ : Int) -> Unit
+
+pub fn rope_inplace(FixedArray[Float], heads~ : Int, len~ : Int, dim~ : Int, base~ : Double) -> Unit
+
+pub fn softmax(ArrayView[Double]) -> Array[Double]
+
+pub fn softmax_rows(FixedArray[Float], rows~ : Int, cols~ : Int, offset? : Int) -> Unit
+
+pub fn zeros(Int) -> FixedArray[Float]
+
+// Errors
+
+// Types and methods
+pub type Arena
+pub fn Arena::capacity(Self) -> Int64
+pub fn Arena::get(Self, Int64) -> Float
+pub fn Arena::new(Int64) -> Self raise @error.LayaError
+
+pub type MetalBuffer
+pub fn MetalBuffer::download(Self, FixedArray[Float], count~ : Int, offset? : Int) -> Unit
+pub fn MetalBuffer::upload(Self, FixedArray[Float], count~ : Int, offset? : Int) -> Unit
+pub fn MetalBuffer::upload_ints(Self, FixedArray[Int], count~ : Int, offset? : Int) -> Unit
+
+pub type MetalContext
+pub fn MetalContext::add(Self, MetalBuffer, MetalBuffer, count~ : Int) -> Unit
+pub fn MetalContext::add_broadcast(Self, MetalBuffer, MetalBuffer, rows~ : Int, cols~ : Int, v_offset~ : Int64) -> Unit
+pub fn MetalContext::begin(Self) -> Unit
+pub fn MetalContext::buffer(Self, Int) -> MetalBuffer raise @error.LayaError
+pub fn MetalContext::commit(Self) -> Unit raise @error.LayaError
+pub fn MetalContext::create() -> Result[Self, String]
+pub fn MetalContext::device_name(Self) -> String
+pub fn MetalContext::fill_bias(Self, MetalBuffer, MetalBuffer, rows~ : Int, cols~ : Int, y_offset? : Int, bias_offset~ : Int64) -> Unit
+pub fn MetalContext::gather_rows(Self, MetalBuffer, MetalBuffer, MetalBuffer, rows~ : Int, cols~ : Int) -> Unit
+pub fn MetalContext::geglu(Self, MetalBuffer, MetalBuffer, rows~ : Int, inner~ : Int) -> Unit
+pub fn MetalContext::gelu(Self, MetalBuffer, count~ : Int) -> Unit
+pub fn MetalContext::gemm(Self, MetalBuffer, MetalBuffer, MetalBuffer, m~ : Int, n~ : Int, k~ : Int, lda~ : Int, ldb~ : Int, ldc~ : Int, a_offset? : Int64, b_offset? : Int64, c_offset? : Int64, a_stride? : Int64, b_stride? : Int64, c_stride? : Int64, batch? : Int, trans_b? : Bool, alpha? : Float, beta? : Float) -> Unit
+pub fn MetalContext::layer_norm(Self, MetalBuffer, MetalBuffer, MetalBuffer, MetalBuffer, rows~ : Int, cols~ : Int, x_offset? : Int, y_offset? : Int, gamma_offset~ : Int64, beta_offset~ : Int64, eps~ : Float) -> Unit
+pub fn MetalContext::relu(Self, MetalBuffer, count~ : Int) -> Unit
+pub fn MetalContext::rope(Self, MetalBuffer, heads~ : Int, len~ : Int, dim~ : Int, base~ : Double) -> Unit
+pub fn MetalContext::softmax(Self, MetalBuffer, rows~ : Int, len~ : Int, window~ : Int) -> Unit
+pub fn MetalContext::split_qkv(Self, MetalBuffer, MetalBuffer, MetalBuffer, MetalBuffer, heads~ : Int, len~ : Int, dim~ : Int) -> Unit
+pub fn MetalContext::unpack_heads(Self, MetalBuffer, MetalBuffer, heads~ : Int, len~ : Int, dim~ : Int) -> Unit
+pub fn MetalContext::wrap_arena(Self, Arena) -> MetalBuffer raise @error.LayaError
+
+pub type Reader
+pub fn Reader::data_start(Self) -> Int64
+pub fn Reader::gather_rows_f16(Self, Int64, FixedArray[Int], Int, Int, FixedArray[Float]) -> Unit raise @error.LayaError
+pub fn Reader::header(Self) -> Bytes
+pub fn Reader::open(String) -> Self raise @error.LayaError
+pub fn Reader::read_f16(Self, Int64, Int64, Arena, Int64) -> Unit raise @error.LayaError
+pub fn Reader::read_f16_into(Self, Int64, FixedArray[Float]) -> Unit raise @error.LayaError
+pub fn Reader::read_f32(Self, Int64, Int64, Arena, Int64) -> Unit raise @error.LayaError
+pub fn Reader::size(Self) -> Int64
+
+// Type aliases
+
+// Traits

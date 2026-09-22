@@ -1,0 +1,11 @@
+[project]
+name = "laya-ref"
+version = "0.1.0"
+description = "Reference oracle: runs laya-mlx locally and dumps golden fixtures for laya.mbt"
+requires-python = ">=3.11"
+dependencies = [
+    "laya-mlx>=0.1",
+    "numpy",
+    "safetensors",
+    "tokenizers",
+]

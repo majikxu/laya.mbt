@@ -1,0 +1,41 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "majikxu/laya/safetensors"
+
+import {
+  "majikxu/laya/error",
+  "majikxu/laya/tensor",
+  "moonbitlang/core/debug",
+}
+
+// Values
+
+// Errors
+
+// Types and methods
+pub struct File {
+  reader : @tensor.Reader
+  tensors : Map[String, TensorInfo]
+}
+pub fn File::contains(Self, String) -> Bool
+pub fn File::gather_rows(Self, TensorInfo, FixedArray[Int], FixedArray[Float]) -> Unit raise @error.LayaError
+pub fn File::info(Self, String) -> TensorInfo raise @error.LayaError
+pub fn File::info_shaped(Self, String, Array[Int]) -> TensorInfo raise @error.LayaError
+pub fn File::length(Self) -> Int
+pub fn File::names(Self) -> Array[String]
+pub fn File::open(String) -> Self raise @error.LayaError
+pub fn File::read_into_arena(Self, TensorInfo, @tensor.Arena, Int64) -> Unit raise @error.LayaError
+pub fn File::read_into_array(Self, TensorInfo, FixedArray[Float]) -> Unit raise @error.LayaError
+
+pub struct TensorInfo {
+  name : String
+  dtype : String
+  shape : Array[Int]
+  begin : Int64
+  end : Int64
+} derive(Eq, @debug.Debug)
+pub fn TensorInfo::elements(Self) -> Int64
+pub fn TensorInfo::item_size(Self) -> Int raise @error.LayaError
+
+// Type aliases
+
+// Traits

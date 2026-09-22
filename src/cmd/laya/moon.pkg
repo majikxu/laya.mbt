@@ -1,0 +1,15 @@
+supported_targets = "native"
+
+import {
+  "majikxu/laya" @lib,
+  "majikxu/laya/error",
+  "moonbitlang/core/argparse",
+  "moonbitlang/core/encoding/utf8",
+  "moonbitlang/core/env",
+  "moonbitlang/core/json",
+  "moonbitlang/core/string",
+  "moonbitlang/x/fs",
+  "moonbitlang/x/sys",
+}
+
+pkgtype(kind: "executable")

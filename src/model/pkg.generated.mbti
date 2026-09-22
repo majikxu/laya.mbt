@@ -1,0 +1,62 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "majikxu/laya/model"
+
+import {
+  "majikxu/laya/error",
+  "majikxu/laya/tensor",
+  "moonbitlang/core/debug",
+}
+
+// Values
+
+// Errors
+
+// Types and methods
+pub struct AgentConfig {
+  head_layers : Int
+  max_len : Int
+  head_max_len : Int
+  temperature : Array[Double]
+  temperature_by_options : Map[String, Double]
+} derive(@debug.Debug)
+pub fn AgentConfig::parse(String) -> Self raise @error.LayaError
+
+pub(all) enum Attention {
+  Global
+  Sliding
+} derive(Eq, @debug.Debug)
+
+pub struct EncoderConfig {
+  vocab_size : Int
+  hidden_size : Int
+  intermediate_size : Int
+  num_hidden_layers : Int
+  num_attention_heads : Int
+  head_dim : Int
+  norm_eps : Float
+  local_attention : Int
+  max_position_embeddings : Int
+  layer_types : Array[Attention]
+  layer_rope_base : Array[Double]
+} derive(@debug.Debug)
+pub fn EncoderConfig::parse(String) -> Self raise @error.LayaError
+
+type Model
+pub fn Model::action_outputs(Self) -> Int
+pub fn Model::agent_config(Self) -> AgentConfig
+pub fn Model::encoder_config(Self) -> EncoderConfig
+pub fn Model::forward(Self, Array[Int], Array[Int], Int, trace? : Map[String, Array[Double]]) -> Outputs raise @error.LayaError
+pub fn Model::load(String, EncoderConfig, AgentConfig) -> Self raise @error.LayaError
+pub fn Model::on_metal(Self) -> Bool
+pub fn Model::use_cpu(Self) -> Unit
+pub fn Model::use_metal(Self, @tensor.MetalContext) -> Unit raise @error.LayaError
+
+pub struct Outputs {
+  logits : Array[Double]
+  options : Int
+  action : Array[Double]
+} derive(@debug.Debug)
+
+// Type aliases
+
+// Traits
