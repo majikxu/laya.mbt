@@ -6,6 +6,8 @@ description = "Laya typed-decision inference engine for MoonBit — native Moder
 
 readme = "src/README.mbt.md"
 
+repository = "https://github.com/majikxu/laya.mbt"
+
 license = "Apache-2.0"
 
 keywords = [ "laya", "inference", "modernbert", "native", "nlp" ]
